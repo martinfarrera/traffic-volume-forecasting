@@ -5,8 +5,10 @@ Weekly Data Science portfolio project: forecast traffic volume using historical 
 ## Status
 
 - Dataset selected: [Kaggle — Real-World Traffic Volume Forecasting](https://www.kaggle.com/datasets/sudhanvahg/real-world-traffic-volume-forecasting)
-- Download: pending Kaggle API credentials (`~/.kaggle/kaggle.json` is not configured in this environment)
-- Download date/version/license: to be recorded after download from the exact Kaggle data card
+- Downloaded: 2026-10-08 through Kaggle CLI into `data/raw/` (raw files are ignored)
+- License: `CC0-1.0` as reported by the Kaggle CLI
+- Dataset evidence: `Train.csv` has 38,373 rows; `Test.csv` has 2,208 rows; `Traffic_Vol` is absent in test values by design
+- EDA status: Pandas-only schema, missingness, duplicate, temporal coverage, and hourly/daily aggregation utilities are implemented in `src/traffic_eda.py`
 
 ## Planned methodology
 
@@ -21,6 +23,6 @@ Weekly Data Science portfolio project: forecast traffic volume using historical 
 - `data/raw/` — immutable downloaded data (not committed)
 - `data/processed/` — generated features (not committed)
 - `notebooks/` — exploratory and modeling notebooks
-- `src/` — reusable Python modules
+- `src/` — reusable Python modules (`traffic_data.py`, `traffic_eda.py`)
 - `models/` — serialized models (not committed)
 - `reports/` — figures and final report
