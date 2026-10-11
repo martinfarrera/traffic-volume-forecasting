@@ -8,6 +8,11 @@ import numpy as np
 import pandas as pd
 from sklearn.ensemble import HistGradientBoostingRegressor
 
+try:
+    from lightgbm import LGBMRegressor
+except ImportError:  # pragma: no cover - exercised only in minimal environments
+    LGBMRegressor = None
+
 
 DEFAULT_FEATURES = (
     "hour",
@@ -99,3 +104,35 @@ def fit_tree_baseline(
     model.fit(train.loc[:, feature_columns], train["Traffic_Vol"])
     predictions = model.predict(validation.loc[:, feature_columns])
     return {"model": model, "metrics": evaluate_predictions(validation["Traffic_Vol"], predictions)}
+
+
+def compare_models(
+    train: pd.DataFrame,
+    validation: pd.DataFrame,
+    feature_columns: tuple[str, ...] = DEFAULT_FEATURES,
+    random_state: int = 42,
+) -> pd.DataFrame:
+    """Evaluate all available models on the same frozen chronological split."""
+    records: list[dict[str, float | str]] = []
+    naive_metrics = evaluate_predictions(validation["Traffic_Vol"], validation["lag_1"])
+    records.append({"model": "lag_1", **naive_metrics})
+
+    histogram = fit_tree_baseline(train, validation, feature_columns, random_state)
+    records.append({"model": "hist_gradient_boosting", **histogram["metrics"]})
+
+    if LGBMRegressor is not None:
+        model = LGBMRegressor(
+            n_estimators=200,
+            learning_rate=0.05,
+            num_leaves=31,
+            random_state=random_state,
+            verbosity=-1,
+        )
+        model.fit(train.loc[:, feature_columns], train["Traffic_Vol"])
+        predictions = model.predict(validation.loc[:, feature_columns])
+        records.append({
+            "model": "lightgbm",
+            **evaluate_predictions(validation["Traffic_Vol"], predictions),
+        })
+
+    return pd.DataFrame(records, columns=["model", "mae", "rmse"])

@@ -6,6 +6,7 @@ import pandas as pd
 from src.traffic_modeling import (
     build_supervised_features,
     chronological_split,
+    compare_models,
     evaluate_predictions,
     naive_predictions,
 )
@@ -57,3 +58,12 @@ def test_naive_predictions_and_metrics_are_explicit():
     assert predictions.tolist() == previous.tolist()
     assert metrics["mae"] == 2.0
     assert metrics["rmse"] == np.sqrt(14 / 3)
+
+
+def test_compare_models_returns_comparable_metric_records():
+    result = compare_models(*chronological_split(build_supervised_features(_frame())))
+
+    assert {"model", "mae", "rmse"}.issubset(result.columns)
+    assert "lag_1" in set(result["model"])
+    assert "hist_gradient_boosting" in set(result["model"])
+    assert result[["mae", "rmse"]].notna().all().all()
