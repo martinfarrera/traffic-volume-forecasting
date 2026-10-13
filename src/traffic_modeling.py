@@ -106,6 +106,31 @@ def fit_tree_baseline(
     return {"model": model, "metrics": evaluate_predictions(validation["Traffic_Vol"], predictions)}
 
 
+def fit_lightgbm(
+    train: pd.DataFrame,
+    validation: pd.DataFrame,
+    feature_columns: tuple[str, ...] = DEFAULT_FEATURES,
+    random_state: int = 42,
+) -> dict[str, Any]:
+    """Fit the comparison's LightGBM model and predict in validation row order."""
+    if LGBMRegressor is None:
+        raise RuntimeError("LightGBM is required for the historical evaluation export")
+    model = LGBMRegressor(
+        n_estimators=200,
+        learning_rate=0.05,
+        num_leaves=31,
+        random_state=random_state,
+        verbosity=-1,
+    )
+    model.fit(train.loc[:, feature_columns], train["Traffic_Vol"])
+    predictions = model.predict(validation.loc[:, feature_columns])
+    return {
+        "model": model,
+        "predictions": predictions,
+        "metrics": evaluate_predictions(validation["Traffic_Vol"], predictions),
+    }
+
+
 def compare_models(
     train: pd.DataFrame,
     validation: pd.DataFrame,
@@ -121,18 +146,7 @@ def compare_models(
     records.append({"model": "hist_gradient_boosting", **histogram["metrics"]})
 
     if LGBMRegressor is not None:
-        model = LGBMRegressor(
-            n_estimators=200,
-            learning_rate=0.05,
-            num_leaves=31,
-            random_state=random_state,
-            verbosity=-1,
-        )
-        model.fit(train.loc[:, feature_columns], train["Traffic_Vol"])
-        predictions = model.predict(validation.loc[:, feature_columns])
-        records.append({
-            "model": "lightgbm",
-            **evaluate_predictions(validation["Traffic_Vol"], predictions),
-        })
+        lightgbm = fit_lightgbm(train, validation, feature_columns, random_state)
+        records.append({"model": "lightgbm", **lightgbm["metrics"]})
 
     return pd.DataFrame(records, columns=["model", "mae", "rmse"])

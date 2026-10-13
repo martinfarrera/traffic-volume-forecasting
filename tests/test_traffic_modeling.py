@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 
 from src.traffic_modeling import (
+    DEFAULT_FEATURES,
     build_supervised_features,
     chronological_split,
     compare_models,
@@ -58,6 +59,31 @@ def test_naive_predictions_and_metrics_are_explicit():
     assert predictions.tolist() == previous.tolist()
     assert metrics["mae"] == 2.0
     assert metrics["rmse"] == np.sqrt(14 / 3)
+
+
+def test_lightgbm_api_preserves_comparison_parameters_and_predictions():
+    from src.traffic_modeling import LGBMRegressor, fit_lightgbm
+
+    train, validation = chronological_split(build_supervised_features(_frame()))
+    result = fit_lightgbm(train, validation)
+    reference = LGBMRegressor(
+        n_estimators=200, learning_rate=0.05, num_leaves=31,
+        random_state=42, verbosity=-1,
+    )
+    reference.fit(train.loc[:, DEFAULT_FEATURES], train["Traffic_Vol"])
+    expected = reference.predict(validation.loc[:, DEFAULT_FEATURES])
+    np.testing.assert_array_equal(result["predictions"], expected)
+    assert result["metrics"] == evaluate_predictions(validation["Traffic_Vol"], expected)
+    comparison = compare_models(train, validation).set_index("model")
+    assert comparison.loc["lightgbm"].to_dict() == result["metrics"]
+
+
+def test_comparison_still_omits_unavailable_lightgbm(monkeypatch):
+    from src import traffic_modeling
+
+    monkeypatch.setattr(traffic_modeling, "LGBMRegressor", None)
+    result = compare_models(*chronological_split(build_supervised_features(_frame())))
+    assert result["model"].tolist() == ["lag_1", "hist_gradient_boosting"]
 
 
 def test_compare_models_returns_comparable_metric_records():
