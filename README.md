@@ -23,8 +23,8 @@ Weekly Data Science portfolio project: forecast traffic volume using historical 
 
 ## Historical evaluation export
 
-Generate `docs/data/forecast.json` for the future static dashboard. This unit
-exports data only: it does not provide a dashboard, backend, or live prediction.
+Generate `docs/data/forecast.json` for the static historical evaluation dashboard.
+The export contains precomputed predictions, not a backend or live prediction service.
 
 From the repository root, use the project's Python environment with the
 requirements installed, including LightGBM (and pytest for verification). Place
@@ -68,12 +68,49 @@ optional.
 - LightGBM's selection is provisional and used this same holdout. This is not an
   independent final test or evidence of production forecasting quality.
 
+## Explore the historical dashboard
+
+From the repository root, serve the committed static files locally:
+
+```bash
+pyenv exec python -m http.server 8000 --bind 127.0.0.1 --directory docs
+```
+
+Open `http://127.0.0.1:8000/`; stop the server with Ctrl+C. Opening the HTML as a
+`file://` URL is not supported because the dashboard fetches its JSON over HTTP.
+No model, raw dataset, framework, CDN, or npm installation is needed to view it.
+
+Select a zero-based starting observation and a 24, 48, or 168-row window.
+The chart and scrollable table compare actual traffic, LightGBM, and lag-1;
+the final window can contain fewer rows. The chart spaces observed rows equally,
+not by elapsed time. Timestamps retain the source representation without a
+fabricated timezone. Full-holdout metrics stay fixed as the window changes.
+Methodology, limitations, attribution/license, and expandable model/validation
+metadata come from the export. Controls support keyboard input; the SVG has a
+text description and an accompanying exact-value table.
+
+The `docs/` directory is ready for static hosting with relative asset/data URLs
+and `.nojekyll`, including a GitHub Pages project-path prefix. **GitHub Pages
+publication is not configured or verified by this work unit.**
+
+Dashboard contract tests require Python/pytest and Node (no Node packages):
+
+```bash
+pyenv exec python -m pytest -q tests/test_web_demo.py
+node --check docs/app.js
+```
+
+These tests exercise loading, errors, empty data, metrics, and bounded window
+updates using a minimal DOM. They do not replace visual or screen-reader testing
+in a real browser.
+
 ## Structure
 
 - `data/raw/` — immutable downloaded data (not committed)
 - `data/processed/` — generated features (not committed)
 - `notebooks/` — exploratory and modeling notebooks
 - `src/` — reusable Python modules (`traffic_data.py`, `traffic_eda.py`, `traffic_modeling.py`, `traffic_demo.py`)
+- `docs/` — plain HTML/CSS/JavaScript historical dashboard and `.nojekyll`
 - `docs/data/forecast.json` — generated historical evaluation payload
 - `models/` — serialized models (not committed)
 - `reports/` — figures and final report

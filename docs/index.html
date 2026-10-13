@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Traffic volume · Historical evaluation</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="app.js" defer></script>
+</head>
+<body>
+<main>
+  <header>
+    <p class="eyebrow">Traffic volume · Model evaluation</p>
+    <h1>Learning from historical traffic</h1>
+    <p>Historical one-step-ahead evaluation — not live forecasting.</p>
+  </header>
+  <p id="status" role="status" aria-live="polite">Loading historical evaluation…</p>
+  <noscript><p>JavaScript is required to load this dashboard. The exported data is available as <a href="data/forecast.json">forecast.json</a>.</p></noscript>
+  <div id="dashboard" hidden>
+    <section aria-labelledby="metrics-heading">
+      <h2 id="metrics-heading">Full validation holdout</h2>
+      <p id="metrics"></p>
+      <p>MAE: mean absolute error. RMSE: root mean squared error. Lower is better; both use traffic-volume units. These metrics do not change with the selected window.</p>
+    </section>
+    <section aria-labelledby="window-heading">
+      <h2 id="window-heading">Explore a historical window</h2>
+      <fieldset id="controls" disabled>
+        <legend>Window selection</legend>
+        <label for="start">Starting observation (zero-based)</label>
+        <input id="start" type="number" min="0" step="1" value="0">
+        <label for="size">Observations to display</label>
+        <select id="size"><option value="24">24</option><option value="48" selected>48</option><option value="168">168</option></select>
+      </fieldset>
+      <p id="window-summary" aria-live="polite"></p>
+      <p>Horizontal axis: observed rows, equally spaced, not elapsed hours. Gaps in timestamps may occur. Values use source timestamps without timezone conversion.</p>
+      <svg id="chart" viewBox="0 0 960 320" role="img" aria-labelledby="chart-title chart-description"></svg>
+      <p class="legend"><span class="actual">━ Actual</span> <span class="lightgbm">┄ LightGBM</span> <span class="lag_1">··· Lag-1 baseline</span></p>
+      <div class="table-scroll" tabindex="0" role="region" aria-label="Historical observations table, scroll horizontally if needed">
+        <table>
+          <caption>Selected observations (source timestamp and traffic volume)</caption>
+          <thead><tr><th scope="col">Timestamp</th><th scope="col">Actual</th><th scope="col">LightGBM</th><th scope="col">Lag-1</th></tr></thead>
+          <tbody id="rows"></tbody>
+        </table>
+      </div>
+    </section>
+    <section aria-labelledby="method-heading">
+      <h2 id="method-heading">Methodology and limitations</h2>
+      <p id="methodology"></p>
+      <p>No model runs in this browser. Predictions are precomputed; no uncertainty intervals are supplied. This evaluation does not measure multi-step forecasting when future observed targets are unavailable.</p>
+      <h3>Dataset attribution</h3>
+      <p id="attribution"></p>
+      <details><summary>Model, validation, and export metadata</summary><pre id="metadata"></pre></details>
+    </section>
+  </div>
+</main>
+</body>
+</html>
