@@ -70,7 +70,13 @@ optional.
 
 ## Explore the historical dashboard
 
-From the repository root, serve the committed static files locally:
+**Public demo:** https://martinfarrera.github.io/traffic-volume-forecasting/
+
+The demo displays precomputed historical evaluation results, not live or
+multi-step forecasts. It runs as a static GitHub Pages site without a production
+backend.
+
+To explore it locally, serve the committed static files from the repository root:
 
 ```bash
 pyenv exec python -m http.server 8000 --bind 127.0.0.1 --directory docs
@@ -89,9 +95,18 @@ Methodology, limitations, attribution/license, and expandable model/validation
 metadata come from the export. Controls support keyboard input; the SVG has a
 text description and an accompanying exact-value table.
 
-The `docs/` directory is ready for static hosting with relative asset/data URLs
-and `.nojekyll`, including a GitHub Pages project-path prefix. **GitHub Pages
-publication is not configured or verified by this work unit.**
+GitHub Pages is published from `main` at `/docs`, with status **built** and HTTPS
+enforced. The verified deployment corresponds to commit
+`e2b57507c561f355db13620a3d42eb121837edea` in the
+[repository](https://github.com/martinfarrera/traffic-volume-forecasting).
+Independent public HTTP checks returned **200** for the dashboard root, CSS,
+JavaScript, and JSON. The static files use relative asset/data URLs and
+`.nojekyll` to support the GitHub Pages project-path prefix.
+
+Verification covers deployment availability, not visual rendering or
+accessibility in a real browser. No visual-browser or screen-reader check has
+been performed. The previous dashboard work unit passed 23 tests and a JavaScript
+syntax check; those checks were not rerun for this documentation-only update.
 
 Dashboard contract tests require Python/pytest and Node (no Node packages):
 
